@@ -35,14 +35,18 @@ def menu_func(self, context) :
 def register():
     bpy.utils.register_class(meshlab.Meshlab)
     bpy.utils.register_class(meshlab.FilterSubmenu)
+    bpy.utils.register_class(meshlab.SimpleOperator)
     ####bpy.utils.register_class(meshlab.MeshlabPanel)
     bpy.types.VIEW3D_MT_object.append(menu_func)
     return
         
 #
 #   unregister -- addon is being unloaded
+#
 def unregister():
     bpy.types.VIEW3D_MT_object.remove(menu_func)
+    bpy.utils.unregister_class(meshlab.SimpleOperator)
+
     bpy.utils.unregister_class(meshlab.FilterSubmenu)
 
     ####bpy.utils.unregister_class(meshlab.MeshlabPanel)

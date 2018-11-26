@@ -42,6 +42,21 @@ def findscriptfiles(path, suffix) :
     Find all readable files with given suffix in given directory.
     """
     return [f for f in os.listdir(path) if f.endswith("." + suffix) and os.path.isfile(os.path.join(path, f))] 
+    
+class SimpleOperator(bpy.types.Operator):
+    """Tooltip"""
+    bl_idname = "object.simple_operator"
+    bl_label = "Simple Object Operator"
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object is not None
+
+    def execute(self, context):
+        self.report({'INFO'}, "Button clicked!")
+        return {'FINISHED'}
+
+
         
     
 class FilterSubmenu (bpy.types.Menu):
@@ -56,8 +71,16 @@ class FilterSubmenu (bpy.types.Menu):
         addonpath = os.path.dirname(__file__)   # the mlx files are where the script is
         for f in findscriptfiles(addonpath,"mlx") :
             print("MLX file: " + f) # ***TEMP***
-        items = bpy.props.EnumProperty(items=[("A","A",'',1), ("B","B",'',2)])    
-        self.layout.prop(items, 'jlist', text='jlist')
+            layout.operator("object.simple_operator", text=f)
+        ####    items = bpy.props.EnumProperty(items=[("A","A",'',1), ("B","B",'',2)])  
+        
+        self.items = bpy.props.EnumProperty(items= (('0', 'A', 'The zeroth item'),    
+                                                 ('1', 'B', 'The first item'),    
+                                                 ('2', 'C', 'The second item'),    
+                                                 ('3', 'D', 'The third item')),
+                                                 name = "fixed list")       
+        ####self.layout.prop(self, 'items', expand=True)
+        ####layout.operator("object.simple_operator")
         layout.separator()
 
 

@@ -43,7 +43,10 @@ def findscriptfiles(path, suffix) :
     """
     return [f for f in os.listdir(path) if f.endswith("." + suffix) and os.path.isfile(os.path.join(path, f))] 
     
-class SimpleOperator(bpy.types.Operator):
+#
+#   FilterScriptOperator - runs indicated filter on the selection
+#
+class FilterScriptOperator(bpy.types.Operator):
     """Tooltip"""
     bl_idname = "object.simple_operator"
     bl_label = "Simple Object Operator"
@@ -59,67 +62,22 @@ class SimpleOperator(bpy.types.Operator):
     def execute(self, context):
         """
         Submenu item clicked.
-        But which one?
         """
-        ###print(dir(self))
-        ###print(dir(self.properties))
         self.report({'INFO'}, "%s clicked!" % self.script_filename)
+        self.run(context)
         return {'FINISHED'}
-
-
-        
-    
-class FilterSubmenu (bpy.types.Menu):
-    """
-    Submenu for selecting filter to use
-    """
-    bl_idname = "OBJECT_MT_select_submenu"
-    bl_label = "Select Meshlab Script"
-
-    def draw(self, context) :
-        """
-        Draw submenu offering various standard MeshLab scripts
-        """
-        addonpath = os.path.dirname(__file__)               # the mlx files are in the script directory
-        for f in findscriptfiles(addonpath,"mlx") :
-            self.layout.operator("object.simple_operator", text=f).script_filename = f
-       
-    
-class Meshlab(bpy.types.Operator):
-    """
-    Run a Meshlab script on selected objects
-    """
-    bl_idname = "meshlab.send_to_meshlab"
-    bl_label = "Send To Meshlab"
-    bl_options = {'REGISTER','UNDO'}
-    
-    cleanup = bpy.props.BoolProperty(name = "cleanup", description = "True to delete temp files", default = False)
-    @classmethod
-    def poll(cls, context):
-        return context.active_object is not None
         
     def run(self, context) :
         """
-        Export file, send to meshlab server, re-import file
+        Run Meshlab using selected filter
         """
-        sce = bpy.context.scene
-        ob = bpy.context.object
-        scale = ob.scale
-        name = ob.name
-    
         server = findmeshlab()                                                          # find meshlabserver executable
         if server is None :
             self.report({'ERROR'}, "Can't find Meshlab Server program. 'meshlabserver' must be in your PATH for command line programs.")
-            return
-        #   Pop up submenu for script to select    
-        
-        bpy.ops.wm.call_menu(name="OBJECT_MT_select_submenu")                           # submenu for selecting script
-        
-        return # ***TEMP***
-                                    
-
+            return      
         #   Preliminary checks complete, OK to attempt operation   
         try :
+            scriptfile = self.script_filename
             working_dir = tempfile.mkdtemp(prefix='Blender-Meshlab')                    # scratch file directory  
             #   Name export file from blender, and meshlab output file for re-import
             temp_ply_path = os.path.join(working_dir,"temp_mesh.ply")
@@ -127,7 +85,6 @@ class Meshlab(bpy.types.Operator):
     
             bpy.ops.export_mesh.ply(filepath=temp_ply_path, check_existing = False)     # exports entire scene, revise
      
-    
             ####result = subprocess.call([server,"-i",temp_ply_path,"-o",temp_o_ply_path,"-s",scriptfile, "-om","vc vn fn fc vt"])
             result = subprocess.call([server,"-i",temp_ply_path,"-o",temp_o_ply_path,"-s",scriptfile, "-m","vc vn fn fc vt"])
 
@@ -155,8 +112,43 @@ class Meshlab(bpy.types.Operator):
                 os.rmdir(working_dir)                                                       # temp directory should always exist
 
 
+
+        
+    
+class FilterSubmenu (bpy.types.Menu):
+    """
+    Submenu for selecting filter to use
+    """
+    bl_idname = "OBJECT_MT_select_submenu"
+    bl_label = "Select Meshlab Script"
+
+    def draw(self, context) :
+        """
+        Draw submenu offering various standard MeshLab scripts
+        """
+        addonpath = os.path.dirname(__file__)               # the mlx files are in the script directory
+        for f in findscriptfiles(addonpath,"mlx") :
+            self.layout.operator("object.simple_operator", text=f).script_filename = f
+       
+    
+class Meshlab(bpy.types.Operator):
+    """
+    Run a Meshlab script on selected objects - menu part
+    """
+    bl_idname = "meshlab.send_to_meshlab"
+    bl_label = "Send To Meshlab"
+    bl_options = {'REGISTER','UNDO'}
+    
+    @classmethod
+    def poll(cls, context):
+        return context.active_object is not None                                  
+
     def execute(self, context):
-        self.run(context)       
+        """
+        All this does is pop up the script submenu
+        """
+        print("Pop up menu")    # ***TEMP****        
+        bpy.ops.wm.call_menu(name="OBJECT_MT_select_submenu") # submenu for selecting script 
         return {'FINISHED'}
 
 

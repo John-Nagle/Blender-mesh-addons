@@ -26,31 +26,27 @@ bl_info = {
 }
 
 #   Connect to Blender menu system        
-####def menu_func(self, context) :
-####   self.layout.operator(impostormaker.ImpostorMaker.bl_idname) 
-
-def register() :
-####   bpy.utils.register_class(impostormaker.ImpostorMaker)
-####    bpy.types.VIEW3D_MT_object.append(menu_func)
-
-####def unregister() :
-####    bpy.utils.unregister_class(impostormaker.ImpostorMaker)
-####    bpy.types.VIEW3D_MT_object.remove(menu_func)
-
+def menu_func(self, context) :
+    self.layout.operator(meshlab.Meshlab.bl_idname) 
         
 #
 #   register -- addon is being loaded
 #
 def register():
-    bpy.utils.register_class(meshlab.MeshlabRun)
-    bpy.utils.register_class(meshlab.MeshlabPanel)
+    bpy.utils.register_class(meshlab.Meshlab)
+    bpy.utils.register_class(meshlab.FilterSubmenu)
+    ####bpy.utils.register_class(meshlab.MeshlabPanel)
+    bpy.types.VIEW3D_MT_object.append(menu_func)
     return
         
 #
 #   unregister -- addon is being unloaded
 def unregister():
-    bpy.utils.unregister_class(meshlab.MeshlabPanel)
-    bpy.utils.unregister_class(meshlab.MeshlabRun)
+    bpy.types.VIEW3D_MT_object.remove(menu_func)
+    bpy.utils.unregister_class(meshlab.FilterSubmenu)
+
+    ####bpy.utils.unregister_class(meshlab.MeshlabPanel)
+    bpy.utils.unregister_class(meshlab.Meshlab)
 
     
 if __name__ == "__main__":              # for debug

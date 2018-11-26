@@ -47,13 +47,23 @@ class SimpleOperator(bpy.types.Operator):
     """Tooltip"""
     bl_idname = "object.simple_operator"
     bl_label = "Simple Object Operator"
+    ####bl_options = {'REGISTER', 'UNDO'}  
+    
+    script_filename = bpy.props.StringProperty(name="filter_script_filename")
+    
 
     @classmethod
     def poll(cls, context):
         return context.active_object is not None
 
     def execute(self, context):
-        self.report({'INFO'}, "Button clicked!")
+        """
+        Submenu item clicked.
+        But which one?
+        """
+        ###print(dir(self))
+        ###print(dir(self.properties))
+        self.report({'INFO'}, "%s clicked!" % self.script_filename)
         return {'FINISHED'}
 
 
@@ -66,47 +76,13 @@ class FilterSubmenu (bpy.types.Menu):
     bl_idname = "OBJECT_MT_select_submenu"
     bl_label = "Select Meshlab Script"
 
-    def draw(self, context):
-        layout = self.layout
-        addonpath = os.path.dirname(__file__)   # the mlx files are where the script is
+    def draw(self, context) :
+        """
+        Draw submenu offering various standard MeshLab scripts
+        """
+        addonpath = os.path.dirname(__file__)               # the mlx files are in the script directory
         for f in findscriptfiles(addonpath,"mlx") :
-            print("MLX file: " + f) # ***TEMP***
-            layout.operator("object.simple_operator", text=f)
-        ####    items = bpy.props.EnumProperty(items=[("A","A",'',1), ("B","B",'',2)])  
-        
-        self.items = bpy.props.EnumProperty(items= (('0', 'A', 'The zeroth item'),    
-                                                 ('1', 'B', 'The first item'),    
-                                                 ('2', 'C', 'The second item'),    
-                                                 ('3', 'D', 'The third item')),
-                                                 name = "fixed list")       
-        ####self.layout.prop(self, 'items', expand=True)
-        ####layout.operator("object.simple_operator")
-        layout.separator()
-
-
-        layout.operator("object.select_all", text="Select/Deselect All").action = 'TOGGLE'
-        layout.operator("object.select_all", text="Inverse").action = 'INVERT'
-        layout.operator("object.select_random", text="Random")
-
-        # access this operator as a submenu
-        layout.operator_menu_enum("object.select_by_type", "type", text="Select All by Type...")
-
-        layout.separator()
-
-        # expand each operator option into this menu
-        layout.operator_enum("object.lamp_add", "type")
-
-        layout.separator()
-
-        # use existing memu
-        layout.menu("VIEW3D_MT_transform")
-
-
-####bpy.utils.register_class(FilterSubmenu)
-
-# test call to display immediately.
-####bpy.ops.wm.call_menu(name="OBJECT_MT_select_submenu")                                                                     
-
+            self.layout.operator("object.simple_operator", text=f).script_filename = f
        
     
 class Meshlab(bpy.types.Operator):

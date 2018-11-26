@@ -39,9 +39,9 @@ def findmeshlab() :
     
 def findscriptfiles(path, suffix) :
     """
-    Find all readable files with given suffix in given directory.
+    Find all readable files with given suffix in given directory. Returns [(name, fullpath) ... ]
     """
-    return [f for f in os.listdir(path) if f.endswith("." + suffix) and os.path.isfile(os.path.join(path, f))] 
+    return [(f, os.path.join(path, f)) for f in os.listdir(path) if f.endswith("." + suffix) and os.path.isfile(os.path.join(path, f))] 
     
 #
 #   FilterScriptOperator - runs indicated filter on the selection
@@ -50,11 +50,9 @@ class FilterScriptOperator(bpy.types.Operator):
     """Tooltip"""
     bl_idname = "object.simple_operator"
     bl_label = "Simple Object Operator"
-    ####bl_options = {'REGISTER', 'UNDO'}  
+    bl_options = {'REGISTER', 'UNDO'}     
+    script_filename = bpy.props.StringProperty(name="filter_script_filename")           # operator argument
     
-    script_filename = bpy.props.StringProperty(name="filter_script_filename")
-    
-
     @classmethod
     def poll(cls, context):
         return context.active_object is not None
@@ -77,7 +75,7 @@ class FilterScriptOperator(bpy.types.Operator):
             return      
         #   Preliminary checks complete, OK to attempt operation   
         try :
-            scriptfile = self.script_filename
+            scriptfile = self.script_filename                                           # name of script we will run
             working_dir = tempfile.mkdtemp(prefix='Blender-Meshlab')                    # scratch file directory  
             #   Name export file from blender, and meshlab output file for re-import
             temp_ply_path = os.path.join(working_dir,"temp_mesh.ply")
@@ -86,7 +84,7 @@ class FilterScriptOperator(bpy.types.Operator):
             bpy.ops.export_mesh.ply(filepath=temp_ply_path, check_existing = False)     # exports entire scene, revise
      
             ####result = subprocess.call([server,"-i",temp_ply_path,"-o",temp_o_ply_path,"-s",scriptfile, "-om","vc vn fn fc vt"])
-            result = subprocess.call([server,"-i",temp_ply_path,"-o",temp_o_ply_path,"-s",scriptfile, "-m","vc vn fn fc vt"])
+            result = subprocess.call([server,"-i",temp_ply_path,"-o",temp_o_ply_path, "-m","vcvnfnfcvt", "-s",scriptfile])
 
             if result != 0 :
                 self.report({'ERROR'},"\"%s\" running script \"%s\" failed, status %d" % (server, scriptfile, result)) # trouble
@@ -111,9 +109,6 @@ class FilterScriptOperator(bpy.types.Operator):
                     os.remove(temp_o_ply_path)
                 os.rmdir(working_dir)                                                       # temp directory should always exist
 
-
-
-        
     
 class FilterSubmenu (bpy.types.Menu):
     """
@@ -127,17 +122,17 @@ class FilterSubmenu (bpy.types.Menu):
         Draw submenu offering various standard MeshLab scripts
         """
         addonpath = os.path.dirname(__file__)               # the mlx files are in the script directory
-        for f in findscriptfiles(addonpath,"mlx") :
-            self.layout.operator("object.simple_operator", text=f).script_filename = f
+        for (name, filename) in findscriptfiles(addonpath,"mlx") :
+            self.layout.operator("object.simple_operator", text=name).script_filename = filename
        
     
 class Meshlab(bpy.types.Operator):
     """
     Run a Meshlab script on selected objects - menu part
     """
-    bl_idname = "meshlab.send_to_meshlab"
-    bl_label = "Send To Meshlab"
-    bl_options = {'REGISTER','UNDO'}
+    bl_idname = "meshlab.meshlab"
+    bl_label = "Meshlab"
+    ####bl_options = {'REGISTER','UNDO'}
     
     @classmethod
     def poll(cls, context):
@@ -147,7 +142,7 @@ class Meshlab(bpy.types.Operator):
         """
         All this does is pop up the script submenu
         """
-        print("Pop up menu")    # ***TEMP****        
+        ####print("Pop up menu")    # ***TEMP****        
         bpy.ops.wm.call_menu(name="OBJECT_MT_select_submenu") # submenu for selecting script 
         return {'FINISHED'}
 

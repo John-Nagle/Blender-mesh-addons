@@ -61,8 +61,7 @@ class FilterScriptOperator(bpy.types.Operator):
         """
         Submenu item clicked.
         """
-        self.report({'INFO'}, "%s clicked!" % self.script_filename)
-        self.run(context)
+        self.run(context)                                                               # do the command
         return {'FINISHED'}
         
     def run(self, context) :
@@ -80,17 +79,17 @@ class FilterScriptOperator(bpy.types.Operator):
             #   Name export file from blender, and meshlab output file for re-import
             temp_ply_path = os.path.join(working_dir,"temp_mesh.ply")
             temp_o_ply_path = os.path.join(working_dir,"temp_mesh_o.ply")
-    
+            #   Export file
             bpy.ops.export_mesh.ply(filepath=temp_ply_path, check_existing = False)     # exports entire scene, revise
      
-            ####result = subprocess.call([server,"-i",temp_ply_path,"-o",temp_o_ply_path,"-s",scriptfile, "-om","vc vn fn fc vt"])
+            #   Call Meshlabserver to do the work.
             result = subprocess.call([server,"-i",temp_ply_path,"-o",temp_o_ply_path, "-m","vcvnfnfcvt", "-s",scriptfile])
 
             if result != 0 :
                 self.report({'ERROR'},"\"%s\" running script \"%s\" failed, status %d" % (server, scriptfile, result)) # trouble
                 return
     
-            #   Import
+            #   Import file exported by Meshlab.
             bpy.ops.import_mesh.ply(filepath=temp_o_ply_path)
             
             #   Postprocessing after import

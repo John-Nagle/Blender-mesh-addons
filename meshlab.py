@@ -90,15 +90,18 @@ class FilterScriptOperator(bpy.types.Operator):
                 self.report({'ERROR'},"\"%s\" running script \"%s\" failed, status %d" % (server, scriptfile, result)) # trouble
                 return
     
+            #   Import
             bpy.ops.import_mesh.ply(filepath=temp_o_ply_path)
+            
+            #   Postprocessing after import
             new_obj = bpy.data.objects["temp_mesh_o"]
-            new_obj.name = name + "_meshlab"
+            ####new_obj.name = name + "_meshlab"
     
-            bpy.ops.object.select_all(action = 'DESELECT')
-            new_obj.select = True
-            bpy.context.scene.objects.active = new_obj
-            bpy.ops.transform.rotate(value = (math.pi/2,),axis = (1,0,0))
-            new_obj.scale = scale
+            ####bpy.ops.object.select_all(action = 'DESELECT')
+            ####new_obj.select = True
+            ####bpy.context.scene.objects.active = new_obj
+            ####bpy.ops.transform.rotate(value = (math.pi/2,),axis = (1,0,0))
+            ####new_obj.scale = scale
             
         finally:                                                                            # clean up, even if things went wrong
             assert(working_dir)
